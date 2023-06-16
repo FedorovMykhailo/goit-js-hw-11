@@ -72,7 +72,16 @@ const clearGallery = () => {
     clearPage();
     hideSorry();
 }
+const scrrolGallery = () => {
+  const { height: cardHeight } = document
+  .querySelector(".gallery")
+  .firstElementChild.getBoundingClientRect();
+ window.scrollBy({
+  top: cardHeight * 2.3,
+  behavior: "smooth",
+});
 
+}
 const showloadMoreButton = () => {
     refs.loadMoreButton.classList.add("visible")
 }
@@ -93,17 +102,8 @@ const onClickLoadMore = async () => {
     console.log(data);
     renderGallery(data.hits);
     gallery.refresh();
-    
-    const { height: cardHeight } = document
-    .querySelector(".gallery")
-    .firstElementChild.getBoundingClientRect();
-   
-  
-  window.scrollBy({
-    top: cardHeight * 2.2,
-    behavior: "smooth",
-  });
-    countHits(data.hits.length);  
+    countHits(data.hits.length);
+    scrrolGallery();
 }
 
 const onSubmit = async (evt) => {
@@ -114,18 +114,16 @@ const onSubmit = async (evt) => {
     const data = await response.json();
     if (data.hits.length === 0) {
         hideloadMoreButton();
-        Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");}
+        Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.",{width: "710px", position: "center-top", fontSize:'20px',});}
     else {
     totalHits = data.totalHits
-    Notiflix.Notify.info(`Hooray! We found ${totalHits} images`,{width: "400px", position: "center-top", fontSize:'24px',})
+    Notiflix.Notify.info(`Hooray! We found ${totalHits} images`,{width: "400px", position: "center-top", fontSize:'20px',})
     renderGallery(data.hits);
     gallery = new SimpleLightbox('.gallery a');
-   // gallery.on('click', (evt) => {evt.preventDefault()});
     countHits(data.hits.length);}
     console.log(document.querySelector(".gallery").firstElementChild);
 
 }
-
 
 refs.form.addEventListener("submit", onSubmit)
 refs.loadMoreButton.addEventListener("click", onClickLoadMore)
