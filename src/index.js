@@ -95,43 +95,46 @@ const showSorry = () => {
 const hideSorry = () => {
     refs.sorry.classList.remove("visible")
 }
-
-const onClickLoadMore = async () => {
+const getData = async () => {
     const url = `https://pixabay.com/api/?key=${API_key}&q=${q}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`
-    // const response = await fetch(url);
-    // const data = await response.json();
     try {
         const responce = await axios.get(url);
-        renderGallery(responce.data.hits);
-        gallery.refresh();
-        countHits(responce.data.hits.length);
-        scrrolGallery();
-    } catch (error) {
+        return responce
+    } catch (error){
         console.error(error);
     }
 }
 
+const onClickLoadMore = async() => { 
+        const responce = await getData();
+        renderGallery(responce.data.hits);
+        gallery.refresh();
+        countHits(responce.data.hits.length);
+        scrrolGallery();
+}
+
 const onSubmit = async (evt) => {
     evt.preventDefault();
+    hideloadMoreButton();
     if (page >= 2) { clearGallery() }
-    q = refs.search.value;
-    const url = `https://pixabay.com/api/?key=${API_key}&q=${q}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`;
-   // const response = await fetch(url);
-   // const data = await response.json();
-   try {
-        const responce = await axios.get(url);
+    q = refs.search.value.trim();
+    console.log(q.length);
+    console.log(q);
+    if (q.length===0) {
+        Notiflix.Notify.warning("Enter your request, please!",{width: "302px", position: "center-top", fontSize:'20px',});
+    }
+    else {
+        const responce = await getData();
         if (responce.data.hits.length === 0) {
-            hideloadMoreButton();
             Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.",{width: "710px", position: "center-top", fontSize:'20px',});}
         else {
             totalHits = responce.data.totalHits
             Notiflix.Notify.info(`Hooray! We found ${totalHits} images`,{width: "400px", position: "center-top", fontSize:'20px',})
             renderGallery(responce.data.hits);
             gallery = new SimpleLightbox('.gallery a');
-            countHits(responce.data.hits.length);}
-   } catch (error) {
-        console.error(error);
-   }
+            countHits(responce.data.hits.length);
+        }
+    }
 }
 
 refs.form.addEventListener("submit", onSubmit)
