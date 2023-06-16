@@ -1,5 +1,6 @@
 import Notiflix from 'notiflix';
 import SimpleLightbox from "simplelightbox";
+import axios from 'axios';
 
 const API_key = "37238562-5ffe15b4bded6c1d7bc3e5140";
 
@@ -56,7 +57,6 @@ const countHits = (dataHits) => {
     else{
         showloadMoreButton();
     }
-    console.log(hits);
 }
 
 const clearPage = () => {
@@ -76,7 +76,8 @@ const scrrolGallery = () => {
   const { height: cardHeight } = document
   .querySelector(".gallery")
   .firstElementChild.getBoundingClientRect();
- window.scrollBy({
+  
+  window.scrollBy({
   top: cardHeight * 2.3,
   behavior: "smooth",
 });
@@ -96,33 +97,41 @@ const hideSorry = () => {
 }
 
 const onClickLoadMore = async () => {
-    console.log(page);
-    const response = await fetch(`https://pixabay.com/api/?key=${API_key}&q=${q}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`);
-    const data = await response.json();
-    console.log(data);
-    renderGallery(data.hits);
-    gallery.refresh();
-    countHits(data.hits.length);
-    scrrolGallery();
+    const url = `https://pixabay.com/api/?key=${API_key}&q=${q}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`
+    // const response = await fetch(url);
+    // const data = await response.json();
+    try {
+        const responce = await axios.get(url);
+        renderGallery(responce.data.hits);
+        gallery.refresh();
+        countHits(responce.data.hits.length);
+        scrrolGallery();
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 const onSubmit = async (evt) => {
     evt.preventDefault();
     if (page >= 2) { clearGallery() }
     q = refs.search.value;
-    const response = await fetch(`https://pixabay.com/api/?key=${API_key}&q=${q}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`);
-    const data = await response.json();
-    if (data.hits.length === 0) {
-        hideloadMoreButton();
-        Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.",{width: "710px", position: "center-top", fontSize:'20px',});}
-    else {
-    totalHits = data.totalHits
-    Notiflix.Notify.info(`Hooray! We found ${totalHits} images`,{width: "400px", position: "center-top", fontSize:'20px',})
-    renderGallery(data.hits);
-    gallery = new SimpleLightbox('.gallery a');
-    countHits(data.hits.length);}
-    console.log(document.querySelector(".gallery").firstElementChild);
-
+    const url = `https://pixabay.com/api/?key=${API_key}&q=${q}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`;
+   // const response = await fetch(url);
+   // const data = await response.json();
+   try {
+        const responce = await axios.get(url);
+        if (responce.data.hits.length === 0) {
+            hideloadMoreButton();
+            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.",{width: "710px", position: "center-top", fontSize:'20px',});}
+        else {
+            totalHits = responce.data.totalHits
+            Notiflix.Notify.info(`Hooray! We found ${totalHits} images`,{width: "400px", position: "center-top", fontSize:'20px',})
+            renderGallery(responce.data.hits);
+            gallery = new SimpleLightbox('.gallery a');
+            countHits(responce.data.hits.length);}
+   } catch (error) {
+        console.error(error);
+   }
 }
 
 refs.form.addEventListener("submit", onSubmit)
